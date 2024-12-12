@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claims-uf-generator
+  namespace: claims-uf
+  labels:
+    app: claims-uf-generator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: claims-uf-generator
+  template:
+    metadata:
+      labels:
+        app: claims-uf-generator
+    spec:
+      containers:
+      - name: claims-uf-generator-frontend-container
+        image: 192.168.2.164:5000/torus9x-claims-uf:docker_tag
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 3000
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30   # Adjust the initial delay here
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30   # Adjust the initial delay here
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: claims-uf-generator
+  namespace: claims-uf
+  labels:
+    app: claims-uf-generator
+spec:
+  selector:
+    app: claims-uf-generator
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 3000
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: 3000
+      #nodePort: 30001
+  type: ClusterIP
